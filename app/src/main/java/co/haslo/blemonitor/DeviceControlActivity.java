@@ -105,9 +105,9 @@ public class DeviceControlActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String getData = mDataWrite.getText().toString().trim();
-                byte[] convertData = hexStringToByte8bit2HexArray(getData);
-                for(byte bytes : hexStringToByte8bit2HexArray(getData)){
-                    System.out.printf("0x%02X ", bytes);
+                String wrapString = "F1"+getData+"F2";
+                byte[] convertData = hexStringToByte8bit2HexArray(wrapString);
+                for(byte bytes : hexStringToByte8bit2HexArray(wrapString)){
                     Log.i("JWLK",String.format("0x%02X", bytes));
                 }
                 mBluetoothLeService.writeCharacteristic(mWriteCharacteristic, convertData);
