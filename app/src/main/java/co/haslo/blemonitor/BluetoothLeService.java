@@ -35,6 +35,8 @@ import android.util.Log;
 import java.util.List;
 import java.util.UUID;
 
+import co.haslo.blemonitor.util.Dlog;
+
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
  * given Bluetooth LE device.
@@ -57,6 +59,10 @@ public class BluetoothLeService extends Service {
     public final static String ACTION_GATT_SERVICES_DISCOVERED = "ACTION_GATT_SERVICES_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE = "ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA = "EXTRA_DATA";
+    public final static String BYTE_DATA = "BYTE_DATA";
+    public final static String BATTERY_DATA = "BATTERY_DATA";
+    public final static String TIMER_DATA = "TIMER_DATA";
+    public final static String EMG_DATA = "EMG_DATA";
 
     public final static UUID UUID_TARGET_SERVICE = UUID.fromString(SampleGattAttributes.TARGET_SERVICE);
     public final static UUID UUID_TARGET_CHARACTERISTIC = UUID.fromString(SampleGattAttributes.TARGET_CHARACTERISTIC);
@@ -148,14 +154,73 @@ public class BluetoothLeService extends Service {
 
         final byte[] data = characteristic.getValue();
         if (data != null && data.length > 0) {
-            final StringBuilder stringBuilder = new StringBuilder(data.length);
+            final StringBuilder stringBuilderShow = new StringBuilder(data.length);
+            final StringBuilder stringBuilderConvert = new StringBuilder(data.length);
             for(byte byteChar : data){
-                stringBuilder.append(String.format("%02X ", byteChar));
+                stringBuilderShow.append(String.format("%02X ", byteChar));
+                stringBuilderConvert.append(String.format("%02X", byteChar));
+                dataDivision(String.format("%02X", byteChar), intent);
             }
-            intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilder.toString());
+            intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilderShow.toString());
         }
         sendBroadcast(intent);
     }
+
+    int stringDataCounter = 0;
+    int stringDataCounterSaver = 0;
+    boolean BatteryFlag = false;
+    boolean TimerFlag = false;
+    boolean EmgFlag = false;
+    int bufferCounter = 0;
+    String[] bufferArray = new String[3];
+
+    public void dataDivision(String stringData, Intent intent) {
+        //Dlog.d("ByteData : "+ stringData);
+        try {
+            if(stringData.equals("F1")) {
+                stringDataCounterSaver = stringDataCounter;
+            }
+            /*Data Division */
+            if ((stringDataCounterSaver + 1) == stringDataCounter && stringData.equals("01")){
+                BatteryFlag = true;
+                bufferCounter = 0;
+            } else if ((stringDataCounterSaver + 1) == stringDataCounter && stringData.equals("02")){
+                TimerFlag = true;
+                intent.putExtra(TIMER_DATA, stringData);
+            } else if ((stringDataCounterSaver + 1) == stringDataCounter && stringData.equals("03")){
+                EmgFlag = true;
+                bufferCounter = 0;
+            }
+
+            if(BatteryFlag && bufferCounter < 2) {
+                if(bufferCounter == 1) {
+                    intent.putExtra(BATTERY_DATA, stringData);
+                }
+                bufferCounter++;
+            } else {
+                BatteryFlag = false;
+            }
+
+            if(EmgFlag && bufferCounter < 3) {
+                bufferArray[bufferCounter] = stringData;
+
+                if(bufferCounter == 2) {
+                    String emgData = bufferArray[1]+bufferArray[2];
+                    intent.putExtra(EMG_DATA, emgData);
+                    bufferArray = new String[3];
+                }
+                bufferCounter++;
+            } else {
+                EmgFlag = false;
+            }
+
+        } catch (Exception e){
+            Dlog.e(e.toString());
+        }
+        stringDataCounter++;
+
+    }
+
 
     public class LocalBinder extends Binder {
         BluetoothLeService getService() {

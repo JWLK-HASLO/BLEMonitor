@@ -172,10 +172,10 @@ public class DeviceScanActivity extends AppCompatActivity {
 
         public void addDevice(BluetoothDevice device) {
             if(!mLeDevices.contains(device)) {
-//                if(device.getName() != null && device.getName().equals("AIRLAB") ) {
-//                    mLeDevices.add(device);
-//                }
-                mLeDevices.add(device);
+                if(device.getName() != null && (device.getName().equals("AIRLAB") || device.getName().equals("EMG"))) {
+                    mLeDevices.add(device);
+                }
+//                mLeDevices.add(device);
             }
         }
 

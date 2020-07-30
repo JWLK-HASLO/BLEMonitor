@@ -63,6 +63,7 @@ public class DeviceControlActivity extends AppCompatActivity {
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
 
     private TextView mConnectionState;
+    private TextView mBatteryState;
     private TextView mDataField;
     private EditText mDataWrite;
     private Button mDataSend;
@@ -72,6 +73,7 @@ public class DeviceControlActivity extends AppCompatActivity {
     private Button mTimer10;
     private String mDeviceName;
     private String mDeviceAddress;
+    private String stateString;
     private ExpandableListView mGattServicesList;
     private BluetoothLeService mBluetoothLeService;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
@@ -97,6 +99,7 @@ public class DeviceControlActivity extends AppCompatActivity {
         mGattServicesList = (ExpandableListView) findViewById(R.id.gatt_services_list);
         mGattServicesList.setOnChildClickListener(servicesListClickListner);
         mConnectionState = (TextView) findViewById(R.id.connection_state);
+        mBatteryState = (TextView) findViewById(R.id.battery_state);
         mDataField = (TextView) findViewById(R.id.data_value);
 
         mDataWrite = findViewById(R.id.data_write);
@@ -257,7 +260,7 @@ public class DeviceControlActivity extends AppCompatActivity {
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 /* [displayGattServices] = Show all the supported services and characteristics on the user interface.
                 * */
-                displayGattServices(mBluetoothLeService.getSupportedGattServices());
+                //displayGattServices(mBluetoothLeService.getSupportedGattServices());
 
                 /* [targetMeasurementServiceAutoConnect] = Only Target Service & Characteristic Auto Connected
                 * If you want Change Service, Edit SampleGattAttributes
@@ -266,6 +269,9 @@ public class DeviceControlActivity extends AppCompatActivity {
 
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+                getBatteryData(intent.getStringExtra(BluetoothLeService.BATTERY_DATA));
+                getTimerData(intent.getStringExtra(BluetoothLeService.TIMER_DATA));
+                getEMGData(intent.getStringExtra(BluetoothLeService.EMG_DATA));
             }
         }
     };
@@ -408,6 +414,7 @@ public class DeviceControlActivity extends AppCompatActivity {
     private void clearUI() {
         mGattServicesList.setAdapter((SimpleExpandableListAdapter) null);
         mDataField.setText(R.string.no_data);
+        mBatteryState.setText(R.string.no_data);
     }
 
 
@@ -422,8 +429,50 @@ public class DeviceControlActivity extends AppCompatActivity {
 
     private void displayData(String data) {
         if (data != null) {
-            Log.d("DeviceControl: ", data);
+            //Dlog.d("displayData: "+ data);
             mDataField.setText(data);
+        }
+    }
+
+    private void getBatteryData(String data) {
+        if (data != null) {
+//            Dlog.d("getBatteryData: "+ data);
+            switch (data) {
+                case "03":
+                    stateString = "80% ~ 100%";
+                    break;
+                case "02":
+                    stateString = "40% ~ 80%";
+                    break;
+                case "01":
+                    stateString = "10% ~ 40%";
+                    break;
+                case "00":
+                    stateString = "0% ~ 10%";
+                    break;
+                default:
+                    stateString = "Error";
+                    break;
+            }
+        }
+        final String finalState = stateString;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBatteryState.setText(finalState);
+            }
+        });
+    }
+
+    private void getTimerData(String data) {
+        if (data != null) {
+            Dlog.d("getTimerData: "+ data);
+        }
+    }
+
+    private void getEMGData(String data) {
+        if (data != null) {
+            Dlog.d("getEMGData: "+ data);
         }
     }
 
