@@ -118,11 +118,12 @@
             android:layout_marginHorizontal="5dp"/>
 
         <Button
-            android:id="@+id/emg_stop"
+            android:id="@+id/emg_clear"
+            android:enabled="false"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:background="@color/colorPrimaryDark"
-            android:text="Stop"
+            android:text="Clear"
             android:textColor="@color/colorWhite"
             android:layout_marginHorizontal="5dp"/>
 
@@ -164,7 +165,14 @@
                   android:textSize="18sp"/>
     </LinearLayout>
 
-    <ExpandableListView 
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart_emg"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"/>
+
+    <ExpandableListView
+        android:visibility="gone"
         android:id="@+id/gatt_services_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
